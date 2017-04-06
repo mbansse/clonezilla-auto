@@ -8,8 +8,8 @@
 # modifié par Marc Bansse pour générer l'inventaire simple dans le script /tftpboot/pxelinux.cfg/clonezilla-auto/inventaire/
 
 if [ "$1" = "--help" -o "$1" = "-h" ]; then
-	echo "Script permettant de générer un fichier de correspondances NOM;IP;MAC pour"
-	echo "l'outil de post-clonage."
+	echo "Script permettant de générer un fichier de correspondances NOM;IP;MAC;PARCS pour"
+	echo "l'outil se3-clonezilla"
 	echo ""
 	echo "Usage : Pas d'option."
 	exit
@@ -18,7 +18,7 @@ fi
 
 dest=/tftpboot/pxelinux.cfg/clonezilla-auto/inventaire/
 
-fich_nom_ip_mac="$dest/inventaire.csv"
+fich_nom_ip_mac_parcs="$dest/inventaire.csv"
 
 BASE=$(grep "^BASE" /etc/ldap/ldap.conf | cut -d" " -f2 )
 ldapsearch -xLLL -b ou=computers,$BASE cn | grep ^cn | cut -d" " -f2 | while read nom
@@ -27,9 +27,9 @@ do
 		# PB: on récupère les cn des entrées machines aussi (xpbof et xpbof$)
 		ip=$(ldapsearch -xLLL -b ou=computers,$BASE cn=$nom ipHostNumber | grep ipHostNumber | cut -d" " -f2)
 		mac=$(ldapsearch -xLLL -b ou=computers,$BASE cn=$nom macAddress | grep macAddress | cut -d" " -f2)
-
+		parcs=$( ldapsearch -xLLL  -b ou=Parcs,$BASE | sed -e '/./{H;$!d;}' -e 'x;/'$nom'/!d;'|grep dn: |sed 's/.*cn=//' |sed 's/,ou.*//' |sed '$!N;s/\n/ /;$!N;s/\n/ /;' |sed '$!N;s/\n/ /;$!N;s/\n/ /;'|sed '$!N;s/\n/ /;$!N;s/\n/ /;' )
 		if [ ! -z "$ip" -a ! -z "$mac" ]; then
-			echo "$ip;$nom;$mac" >> $fich_nom_ip_mac
+			echo "$ip;$nom;$mac;$parcs" >> $fich_nom_ip_mac_parcs
 			
 		fi
 	fi

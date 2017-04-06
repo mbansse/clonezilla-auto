@@ -112,12 +112,12 @@ bash "$CHEMIN"/inventaire/import_inventaire
 
 #on a placé dans le répertoire clonezilla-auto/inventaire un export des entrées du dhcp fait avec l'interface se3
 #on demande à l'utilisateur de rentrer les trois premiers octets du parc à restaurer 
-echo "entrer les premiers octets du parc à cloner (ex 172.20.50.) ou l'adresse ip/nom  du poste (ex 172.20.50.101)" 
+echo "entrer le nom ou les premiers octets du parc à cloner (ex 172.20.50.) ou l'adresse ip/nom  du poste (ex 172.20.50.101)" 
 read debutip
 
 # on affiche uniquementt les entrées du fichier d'export contenant ce début d'ip
 cat  /tftpboot/pxelinux.cfg/clonezilla-auto/inventaire/inventaire* |grep "$debutip" > /tftpboot/pxelinux.cfg/clonezilla-auto/temp/exportauto
-#On a créé un fichier "exportauto" à partir du fichier d'inventaire dhcp qui contient trois colonne ip;nom-netbios;mac   (ex:172.20.50.101;virtualxp1;08:00:27:0e:5a:d0) 
+#On a créé un fichier "exportauto" à partir du fichier d'inventaire dhcp qui contient trois quatre colonnes ip;nom-netbios;mac;parcs   (ex:172.20.50.101;virtualxp1;08:00:27:0e:5a:d0;m72e sciences) 
 
 #on ne garde que la deuxième colonne pour avoir la liste des postes sensés être clonés qu'il faudra vérifier.
 cut -d';' -s -f2   "$TEMP"/exportauto > "$TEMP"/verifpostes
