@@ -31,7 +31,6 @@ cat <<EOF>> /etc/samba/smb_etab.conf
 EOF
 
 chown -R admin:admins /var/se3/partimag
-chown -R adminse3:lcs-users /var/se3/partimag/*
 chmod -R 775 /var/se3/partimag/
 
 #On relance le service samba
@@ -118,17 +117,16 @@ rm -Rf /var/se3/temp/
 
 #etape 4, on va ajouter dans le menu perso.menu l'intrée clonezilla avec le montage du partage déjà fait
 cat <<EOF>> /tftpboot/pxelinux.cfg/perso.menu
-label clonezilla64
-MENU LABEL Clonezilla live 64 (se3)
-KERNEL clonezilla64/vmlinuz
-APPEND initrd=clonezilla64/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t cifs //$ipse3/partimag /home/partimag/ -o credentials=/root/credentials"   ocs_live_run="ocs-live-general" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://$ipse3/clonezilla64/filesystem.squashfs
-EOF
-
-cat <<EOF>> /tftpboot/pxelinux.cfg/perso.menu
 label Clonezilla-live
 MENU LABEL restauration d'une image (sur se3)
 KERNEL clonezilla64/vmlinuz
 APPEND initrd=clonezilla64/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t cifs //$ipse3/partimag /home/partimag/ -o credentials=/root/credentials"  ocs_live_run="ocs-sr  -e1 auto -e2  -r -j2  -p reboot restoredisk  ask_user sda" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://$ipse3/clonezilla64/filesystem.squashfs
+
+label Clonezilla-live
+MENU LABEL creation d'une image (sur se3)
+KERNEL clonezilla64/vmlinuz
+APPEND initrd=clonezilla64/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t cifs //$ipse3/partimag /home/partimag/ -o credentials=/root/credentials"  ocs_live_run="ocs-sr  -q2 -c -j2 -z1 -i 4096   -p reboot savedisk  ask_user sda" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://"$ipse3"/clonezilla64/filesystem.squashfs
+
 EOF
 
 exit
