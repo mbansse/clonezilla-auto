@@ -20,19 +20,18 @@ mkdir -p /var/se3/partimag/
 
 cat <<EOF>> /etc/samba/smb_etab.conf
 
-#<partimag>
-#Installé à partir du script contenau dans clonezilla-auto
-#Date : $DATE
 [partimag]
-        comment = partage samba servant à stocker les images clonezilla générées
+        comment = images_clonezilla
         path    = /var/se3/partimag
         read only       = No
-        browseable = yes
-        valid users     = @admins adminse3
+        valid users     = adminse3
+        admin users     = adminse3
 #</partimag>
+
 EOF
 
-chown -R admin:admins /var/se3/partimag/
+chown -R admin:admins /var/se3/partimag
+chown -R adminse3:lcs-users /var/se3/partimag/*
 chmod -R 775 /var/se3/partimag/
 
 #On relance le service samba
