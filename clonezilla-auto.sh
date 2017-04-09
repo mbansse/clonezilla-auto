@@ -19,7 +19,7 @@ then
 
 elif [ "$choixlanceur" = "2" ]
 then
-bash  "$CHEMIN"/scripts/clonezilla-manuel-samba
+bash  "$CHEMIN"/scripts/clonezilla-manuel-se3
 elif [  "$choixlanceur" = "3"  ] 
 then 
 bash  "$CHEMIN"/scripts/clonezilla-manuel-samba
