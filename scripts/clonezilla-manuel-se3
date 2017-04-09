@@ -22,7 +22,8 @@ echo "Les postes doivent avoir le wakeonlan d'activé et un boot par défaut en 
 
 #On efface le contenu du répertoire temp au cas où un précédent clonage aurait été arrêté manuellement 
 rm -Rf "$TEMP"/*
-
+#on créé le répertoire temp au cas où il n'existerait pas.
+mkdir -p "$TEMP"
 
 
 #L'utilisateur doit entrer l'ip du partage samba, le nom du partage, le login de l'utilisateur et le mdp

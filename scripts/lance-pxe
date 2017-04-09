@@ -16,6 +16,8 @@ BASE=$(grep "^BASE" /etc/ldap/ldap.conf | cut -d" " -f2 )
 
 #On efface le contenu du répertoire temp au cas où un précédent clonage aurait été arrêté manuellement
 rm -Rf "$TEMP"/*
+#on créé le répertoire temp au cas où il n'existerait pas.
+mkdir -p "$TEMP"
 
 #création du répertoire contenant la date du lancement de script pour les logs
 mkdir "$CHEMIN"/log/"$DATE"
