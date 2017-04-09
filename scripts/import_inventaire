@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-##### Script de génération du fichier de correspondance NOM;IP;MAC #####
+##### Script de génération du fichier de correspondance NOM;IP;MAC;PARCS #####
 #
 # Auteur : Stephane Boireau (Bernay/Pont-Audemer (27))
 #
 ## $Id$ ##
-# modifié par Marc Bansse pour générer l'inventaire simple dans le script /tftpboot/pxelinux.cfg/clonezilla-auto/inventaire/
+# modifié par Marc Bansse pour générer l'inventaire simple dans le script /tftpboot/pxelinux.cfg/clonezilla-auto/temp/ et ajouter les parcs dans lequels une machine est inscrite.
 
 if [ "$1" = "--help" -o "$1" = "-h" ]; then
 	echo "Script permettant de générer un fichier de correspondances NOM;IP;MAC;PARCS pour"
@@ -16,7 +16,7 @@ if [ "$1" = "--help" -o "$1" = "-h" ]; then
 fi
 
 
-dest=/tftpboot/pxelinux.cfg/clonezilla-auto/inventaire/
+dest=/tftpboot/pxelinux.cfg/clonezilla-auto/temp/
 
 fich_nom_ip_mac_parcs="$dest/inventaire.csv"
 

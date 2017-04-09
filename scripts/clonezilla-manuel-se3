@@ -4,7 +4,6 @@
 TEMP="/tftpboot/pxelinux.cfg/clonezilla-auto/temp"
 CHEMIN="/tftpboot/pxelinux.cfg/clonezilla-auto"
 LISTE-IMAGE="/tftpboot/pxelinux.cfg/clonezilla-auto/liste-image"
-#IPSE3="172.20.0.2"
 #récupération des variables se3
 . /etc/se3/config_m.cache.sh
 BASE=$(grep "^BASE" /etc/ldap/ldap.conf | cut -d" " -f2 )
@@ -17,51 +16,25 @@ mkdir -p "$CHEMIN"/log/"$DATE"
  #On demande à l'utilisateur quelle image restaurer parmi celles qui sont présentes dans le répertoire image
 # On affiche une liste de type d images ( dans un répertoire): on demande quel type d'image sera à restaurer: il faudra donc creer un fichier commande-pxe-parc (appelé M72-tertaire par ex) pour chaque type d image.
 clear 
-echo "Ce script permet de restaurer une image clonezilla existante  sur un/plusieurs postes"
-echo "Les images existantes doivent être stockées sur un partage samba (se3 ou autre)"
-echo "Les postes doivent avoir le wakeonlan d'activé, un boot par défaut en pxe "
+echo "Ce script permet de restaurer une image clonezilla existante  sur un/plusieurs postes du réseau"
+echo "Les images existantes doivent être stockées sur le partage 'partimag' créé sur le se3"
+echo "Les postes doivent avoir le wakeonlan d'activé et un boot par défaut en pxe "
 
 #On efface le contenu du répertoire temp au cas où un précédent clonage aurait été arrêté manuellement 
 rm -Rf "$TEMP"/*
-#on efface l'inventaire qui n'est peut-être pas à jour
-rm -f "$CHEMIN"/inventaire/inventaire*
+
 
 
 #L'utilisateur doit entrer l'ip du partage samba, le nom du partage, le login de l'utilisateur et le mdp
-echo -e "\033[34mEntrer l'ip du partage samba\033[0m (ex  172.20.0.6)"
-read IPSAMBA
-echo -e "\033[34mEntrer le nom du partage samba\033[0m  (ex partimag) "
-read PARTAGE
-echo -e "\033[34mEntrer le nom d'un utilisateur autorisé à lire sur le partage\033[0m (ex clonezilla)"
-read USER
-echo -e "\033[34mEntrer le mot de passe de l'utilisateur\033[0m  (le mot de passe n'apparait pas sur l'écran )"
-read -s MDP
+echo -e "Choisir \033[31mclonezilla\033[0m  ou   \033[31mclonezilla64\033[0m ."
+read CLONEZILLA
 
-
-#le partage samba contenant les images est monté dans le répertoire liste_image juste pour établir le fichier  contenant la liste des images disponibles.
-mount -t cifs //$IPSAMBA/$PARTAGE "$CHEMIN"/liste-image/ -o user=$USER,password=$MDP
-#vérification que le montage s'est fait correctement (si le répertoire liste-image n'est pas monté, on quitte le script)
-VERIFMONTAGE=$(mount |grep liste-image)
-if [ "$VERIFMONTAGE" = ""  ]; then  echo " le montage de partage samba a échoué, veuillez vérifier les paramètres entrés puis relancer le script"
-bash "$CHEMIN"/efface-temp
-exit
-else
-clear 
-echo -e "le montage du partage samba est effectué,recopier parmi la liste suivante le \033[31m\033[1m NOM EXACT\033[0m  de l'image à restaurer."
-fi
-
-
-
-# on affiche la liste des images disponibles sur le partage.
-ls   "$CHEMIN"/liste-image/
-#la liste des  images est écrite dans un fichier liste 
-ls   "$CHEMIN"/liste-image/ > "$TEMP"/liste
+echo -e "Recopier parmi la liste suivante le \033[31m\033[1m NOM EXACT\033[0m  de l'image à restaurer."
+ls /home/partimag/
 read choix
-#On démonte le partage samba du se3
-umount  "$CHEMIN"/liste-image/
 
 #On vérifie que ce qui a été tapé correspond bien à une image existante
-VERIF=$(cat  /tftpboot/pxelinux.cfg/clonezilla-auto/temp/liste |grep "$choix")
+VERIF=$(ls /home/partimag/ |grep "$choix")
 
 if [ "$VERIF" = ""  ]; then  echo "pas d'image choisie ou image inexistante, le script est arrêté"
 bash "$CHEMIN"/efface-temp
@@ -75,7 +48,7 @@ fi
 
 # On peut maintenant créer un fichier de commande pxe personnalisé pour le clonage clonezilla
 cat <<EOF> "$TEMP"/pxe-perso
-# Script de boot pour personnalisé: image déployée = "$choix" sur "$NOM_CLIENT"
+# Script de boot pour personnalisé: image déployée = "$choix" 
 
 # Echappatoires pour booter sur le DD:
 label 0
@@ -91,8 +64,8 @@ label disk2
 
 label clonezilla
 #MENU LABEL Clonezilla restore "$choix" (partimag)
-KERNEL clonezilla64/vmlinuz
-APPEND initrd=clonezilla64/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t cifs //$IPSAMBA/$PARTAGE /home/partimag/ -o user=$USER,password=$MDP "  ocs_live_run="ocs-sr  -e1 auto -e2  -r -j2  -p reboot restoredisk  $choix sda" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://$se3ip/clonezilla64/filesystem.squashfs
+KERNEL $CLONEZILLA/vmlinuz
+APPEND initrd=$CLONEZILLA/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t cifs //$se3ip/partimag/ /home/partimag/ -o credentials=/root/credentials "  ocs_live_run="ocs-sr  -e1 auto -e2  -r -j2  -p reboot restoredisk  $choix sda" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://$se3ip/$CLONEZILLA/filesystem.squashfs
 
 # Choix de boot par défaut:
 default clonezilla
@@ -108,11 +81,12 @@ EOF
 
 #On génère le nouveau fichier d'inventaire d'après la branche computer ldap en lançant le script prévu à cet effet.
 echo "le script génère le nouveau fichier d'inventaire des machines( cela prendra quelques secondes)"
-bash "$CHEMIN"/inventaire/import_inventaire
+bash "$CHEMIN"/scripts/import_inventaire
 
-#on a placé dans le répertoire clonezilla-auto/inventaire un export des entrées du dhcp fait avec l'interface se3
-#on demande à l'utilisateur de rentrer les trois premiers octets du parc à restaurer 
+#on a ainsi placé dans le répertoire temp un export des entrées computer du ldap.  Chaque ligne est du genre ip;nom-netbios;mac;parcs   (ex:172.20.50.101;virtualxp1;08:00:27:0e:5a:d0;m72e sciences)
+
 echo ""
+#On effectue une recherche ldap pour  afficher l'ensemble des parcs  mis en place. Chaque parc est espacé d'un autre.
 LISTE_PARCS=$(ldapsearch -xLLL  -b ou=Parcs,$BASE|grep dn:|sed 's/.*cn=//'|sed 's/,ou.*//' |sed '1d' |sed 1n |sed 's/$/ /'| tr '\n' ' ' |sed 's/>%/>\n/g')
 echo -e "\033[4mPour rappel, voici la liste des parcs\033[0m"
 echo "$LISTE_PARCS"
@@ -122,8 +96,8 @@ echo "s'il faut restaurer seulement un poste, on entrera l'adresse ip (ex 172.20
 read debutip
 
 # on affiche uniquementt les entrées du fichier d'export contenant ce début d'ip
-cat  /tftpboot/pxelinux.cfg/clonezilla-auto/inventaire/inventaire* |grep "$debutip" > /tftpboot/pxelinux.cfg/clonezilla-auto/temp/exportauto
-#On a créé un fichier "exportauto" à partir du fichier d'inventaire dhcp qui contient trois quatre colonnes ip;nom-netbios;mac;parcs   (ex:172.20.50.101;virtualxp1;08:00:27:0e:5a:d0;m72e sciences) 
+cat  /tftpboot/pxelinux.cfg/clonezilla-auto/temp/inventaire* |grep "$debutip" > /tftpboot/pxelinux.cfg/clonezilla-auto/temp/exportauto
+#On a créé un fichier "exportauto" à partir du fichier d'inventaire dhcp qui contient quatre colonnes ip;nom-netbios;mac;parcs   (ex:172.20.50.101;virtualxp1;08:00:27:0e:5a:d0;m72e sciences) 
 
 #on ne garde que la deuxième colonne pour avoir la liste des postes sensés être clonés qu'il faudra vérifier.
 cut -d';' -s -f2   "$TEMP"/exportauto > "$TEMP"/verifpostes
@@ -161,7 +135,7 @@ if [ "$POSTES2" = "" ]; then echo "aucun poste ne correspond à cette demande"
 exit
 else echo " Etes-vous sur de vouloir restaurer ces postes?"
 echo -e "\033[31m "$POSTES2"\033[Om"
-echo -e " \033[7mATTENTION, le mdp du partag samba va apparaitre très brievement en clair sur l'écran des postes lors du montage automatique du serveur, veillez à ce que la salle soit vide\033[0m"
+echo -e " \033[4mATTENTION, le mdp du partag samba va apparaitre très brievement en clair sur l'écran des postes lors du montage automatique du serveur, veillez à ce que la salle soit vide\033[0m"
 echo -e "taper \033[31moui\033[0m pour continuer ou autre chose pour quitter"
 read REPONSE2
 fi
@@ -199,12 +173,8 @@ cp "$TEMP"/listeok "$CHEMIN"/log/"$DATE"
 mac=$(sed -n "1p" "$TEMP"/listeok | sed 's/.*/\L&/')
 #On met en variable le nom du premier poste de la liste pour le lancer avec le script se3 lance_poste
 NOM_CLIENT=$(sed -n "1p" "$TEMP"/postes)
-#On place la même adresse mac avec : dans une variable mac2 pour le wakeonlan du poste
-mac2=$(sed -n "1p" "$TEMP"/liste1)
-#voir si l'option /usr/share/se3/scripts/start_poste.sh  "$NOM_CLIENT" wol marche....eviterait donc la variable mac2
 
-
-#on  créer notre boucle ici: On va supprimer la première ligne de la liste des adresses mac. Dès que le fichier contenant les adresses mac est vide, il y a arret de la boucle
+#on  crée notre boucle ici: On va supprimer la première ligne de la liste des adresses mac. Dès que le fichier contenant les adresses mac est vide, il y a arret de la boucle
 until [ "$mac" = "" ]
 do 
  
@@ -213,9 +183,7 @@ cp  "$TEMP"/pxe-perso /tftpboot/pxelinux.cfg/01-"$mac"
 cp  "$TEMP"/pxe-perso /tftpboot/pxelinux.cfg/clonezilla-auto/log/"$DATE"/01-"$mac"-"$NOM_CLIENT"
 chmod 644 /tftpboot/pxelinux.cfg/01-*
  
-#Il faut ensuite allumer le poste qui va donc détecter les instructions pxe.
-#le format du wakeonlan doit être wakeonlan 08:1a:
-#wakeonlan "$mac2"
+
 #si le poste est déjà allumé sous windows, on lui envoie un signal de reboot
 #echo "$NOM_CLIENT" > "$CHEMIN"/log/"$DATE"/"$NOM_CLIENT"  #inutile puisqu'un fichier avec mac et nom_client est écrit plus haut.
 /usr/share/se3/scripts/start_poste.sh  "$NOM_CLIENT" reboot
@@ -228,11 +196,10 @@ sed -i '1d' "$TEMP"/listeok
 sed -i '1d' "$TEMP"/liste1
 sed -i '1d' "$TEMP"/postes
 
-#On place la première adresse mac de la listemac  dans une variable pour créer ensuite le fichier de commande pxe personnalisé du poste.
+#On  actualise la vaiable mac.
 mac=$(sed -n "1p" "$TEMP"/listeok | sed 's/.*/\L&/')
 
-#On place la même adresse mac avec : dans une variable mac2 pour le wakeonlan du poste
-mac2=$(sed -n "1p" /tftpboot/pxelinux.cfg/clonezilla-auto/temp/liste1)
+#On actualise les variables NOM_CLIENT
 NOM_CLIENT=$(sed -n "1p" "$TEMP"/postes)
 
 
