@@ -17,6 +17,9 @@ Cet ensemble de scripts est fait pour être utilisé avec les serveurs se3 (samb
 
 *Le répertoire 'clonezilla-auto' doit être placé dans le répertoire /tftpboot/pxelinux.cfg/ du se3. Si on le met ailleurs, il faudra modifier les variables d'environnement dans les scripts, ainsi que certains emplacements écrits sans variable.*
 
-##Inetgration automatique
+
+##Intégration automatique
 Si les postes ont déjà été intégrés (et sont donc considérés commes tels par le serveur) et qu'ils possèdent déjà le compte adminse3 et administrateur avec les mots de passe (utilisateurs à ajouter avant de créer l'image), alors l'integration automatique via l'interface (réservation ip > réintégrer le poste) est possible.
 
+## Utilisation par un débutant
+Clonezilla-auto a été conçu pour être simple d'utilisation. Il suffit de lancer clonezilla-auto.sh, puis de se laisser guider. 
