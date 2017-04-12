@@ -38,7 +38,7 @@ read  choixlanceur
 
 if [ "$choixlanceur" = "1" ] 
 then
-        bash  "$CHEMIN"/scripts/mise_en_place_partimag_et_clonezilla2.sh
+        bash  "$CHEMIN"/scripts/mise_en_place_partimag_et_clonezilla.sh
 
 elif [ "$choixlanceur" = "2" ]
 then
