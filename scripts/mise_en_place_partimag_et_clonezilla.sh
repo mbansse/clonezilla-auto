@@ -35,7 +35,7 @@ chmod -R 775 /var/se3/partimag/
 
 #On relance le service samba
 /etc/init.d/samba restart
-echo "Le partage samba  'partimag' est maintenant fonctionnel et accessible par admin et adminse3"
+echo "Le partage samba  'partimag' est maintenant fonctionnel et accessible par adminse3"
 else
 clear
 echo "Le partage samba n'a pas été créé, passage à l'étape suivante"
@@ -84,6 +84,7 @@ mksquashfs squashfs-root filesystem.squashfs -b 1024k -comp xz -Xbcj x86 -e boot
 rm -Rf squashfs-root
 mv /var/se3/temp/filesystem.squashfs /var/se3/clonezilla/filesystem.squashfs
 chmod 444 /var/se3/clonezilla/filesystem.squashfs
+touch /var/se3/clonezilla/modif_ok
 rm -Rf /var/se3/temp/
 
 
@@ -111,6 +112,7 @@ mksquashfs squashfs-root filesystem.squashfs -b 1024k -comp xz -e boot
 rm -Rf squashfs-root
 mv /var/se3/temp/filesystem.squashfs /var/se3/clonezilla64/filesystem.squashfs
 chmod 444 /var/se3/clonezilla64/filesystem.squashfs
+touch /var/se3/clonezilla/modif_ok
 rm -Rf /var/se3/temp/
 
 
