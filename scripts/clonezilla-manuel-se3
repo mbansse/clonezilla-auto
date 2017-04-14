@@ -11,7 +11,7 @@ DATE=`date +%Y-%m-%d-%H-%M`
 # les fonctions
 #----- -----
 
-accueil()
+accueil_se3()
 {
  #On demande à l'utilisateur quelle image restaurer parmi celles qui sont présentes dans le répertoire image
 # On affiche une liste de type d images ( dans un répertoire): on demande quel type d'image sera à restaurer: il faudra donc creer un fichier commande-pxe-parc (appelé M72-tertaire par ex) pour chaque type d image.
@@ -21,27 +21,27 @@ echo ""
 echo -e "Les images existantes doivent être stockées sur le partage \033[31m "partimag"\033[0m créé sur le se3 par le script de mise en place (choix n°1 du script "clonezilla-auto") "
 echo ""
 echo "Les postes doivent avoir le wakeonlan d'activé et un boot par défaut en pxe "
-    }
+}
 
 
 
-prealable()
+prealable_se3()
 {
 #creation du répertoire de montage pour la première utilisation et mise en variable
-mkdir -p /mnt/liste-image/
 LISTE_IMAGE="/var/se3/partimag/"
 #création du répertoire contenant les fichiers temporaires et mise en variable
 mkdir -p /var/log/clonezilla-auto/$DATE
 LOG="/var/log/clonezilla-auto/$DATE/"
 }
-choix_clonezilla()
+
+choix_clonezilla_se3()
 {
 echo " Vous devez choisir si vous voulez utiliser la version 32 bits (clonezilla), ou la version 64 bits (clonezilla64) "
 echo -e "Taper \033[31mclonezilla\033[0m  ou   \033[31mclonezilla64\033[0m puis appuyer sur entrée ."
 read CLONEZILLA
 }
 
-choix_image()
+choix_image_se3()
 {
 
 # on vérifie qu'il y a bien une image à restaurer sur le partage (on va voir directement le contenu de /var/se3/partimag/).
@@ -60,9 +60,9 @@ ls   "$LISTE_IMAGE" > "$TEMP"/liste
 read choix
 
 #On vérifie que ce qui a été tapé correspond bien à une image existante
-VERIF=$(cat $TEMP/liste |grep choix)
+VERIF=$(cat $TEMP/liste |grep $choix)
 if [ "$VERIF" = ""  ]; then  echo "pas d'image choisie ou image inexistante, le script est arrêté"
-rm -Rf "$TEMP"
+#rm -Rf "$TEMP"
 exit
 else
 clear
@@ -70,7 +70,7 @@ echo -e "L'image appelée \033[31m$choix \033[0m a été choisie."
 fi
 }
 
-creation_pxe_perso()
+creation_pxe_perso_se3()
 {
 # On peut maintenant créer un fichier de commande pxe personnalisé pour le clonage clonezilla
 cat <<EOF> "$TEMP"/pxe-perso
@@ -294,11 +294,11 @@ rm -Rf "$TEMP"
 
 ###début du programme###
 
-accueil
-prealable
-choix_clonezilla
-choix_image
-creation_pxe_perso
+accueil_se3
+prealable_se3
+choix_clonezilla_se3
+choix_image_se3
+creation_pxe_perso_se3
 maj_machines
 choix_machines
 generation_variables

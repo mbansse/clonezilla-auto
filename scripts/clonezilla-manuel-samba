@@ -11,7 +11,7 @@ DATE=`date +%Y-%m-%d-%H-%M`
 # les fonctions
 #----- -----
 
-accueil()
+accueil_samba()
 {
  #On demande à l'utilisateur quelle image restaurer parmi celles qui sont présentes dans le répertoire image
 # On affiche une liste de type d images ( dans un répertoire): on demande quel type d'image sera à restaurer: il faudra donc creer un fichier commande-pxe-parc (appelé M72-tertaire par ex) pour chaque type d image.
@@ -25,7 +25,7 @@ echo "Les postes doivent avoir le wakeonlan d'activé et un boot par défaut en 
 
 
 
-prealable()
+prealable_samba()
 {
 #creation du répertoire de montage pour la première utilisation et mise en variable
 mkdir -p /mnt/liste-image/
@@ -69,7 +69,7 @@ echo -e "le montage du partage samba est effectué,recopier parmi la liste suiva
 fi
 }
 
-choix_image()
+choix_image_samba()
 {
 # on affiche la liste des images disponibles sur le partage.
 ls   "$LISTE_IMAGE"
@@ -89,7 +89,7 @@ echo -e "L'image appelée \033[31m$choix \033[0m a été choisie."
 fi
 }
 
-creation_pxe_perso()
+creation_pxe_perso_samba()
 {
 # On peut maintenant créer un fichier de commande pxe personnalisé pour le clonage clonezilla
 cat <<EOF> "$TEMP"/pxe-perso
@@ -290,7 +290,7 @@ NOM_CLIENT=$(sed -n "1p" "$TEMP"/postes)
 done
 }
 
-fin_script()
+fin_script_samba()
 {
 
 if [ "$mac" = "" ]; then  echo "On attends deux minutes pour que les postes aient le temps de booter en pxe et de récupérer les consignes"
@@ -313,17 +313,17 @@ rm -Rf "$TEMP"
 
 ###début du programme###
 
-accueil
-prealable
+accueil_samba
+prealable_samba
 choix_samba
 montage_samba
-choix_image
-creation_pxe_perso
+choix_image_samba
+creation_pxe_perso_samba
 maj_machines
 choix_machines
 generation_variables
 boucle
-fin_script
+fin_script_samba
 
 exit
 
