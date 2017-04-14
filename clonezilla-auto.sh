@@ -9,7 +9,7 @@
 #
 # Auteurs :      Marc Bansse marc.bansse@ac-versailles.fr
 #
-# Modifié par :  M
+# Modifié par :  
 #
 # Ce programme est un logiciel libre : vous pouvez le redistribuer ou
 #    le modifier selon les termes de la GNU General Public Licence tels
