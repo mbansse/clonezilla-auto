@@ -36,8 +36,10 @@ TEMP=$(mktemp -d --suffix=-clonezilla-auto)
 . /etc/se3/config_m.cache.sh
 BASE=$(grep "^BASE" /etc/ldap/ldap.conf | cut -d" " -f2 )
 DATE=`date +%Y-%m-%d-%H-%M`
-
-
+#variable  à changer et à décommenter
+PXE_PERSO="/tftpboot/pxelinux.cfg/clonezilla-auto/pxeperso"
+mkdir -p /var/log/clonezilla-auto/$DATE
+LOG="/var/log/clonezilla-auto/$DATE/"
 
 
 
@@ -123,7 +125,28 @@ echo -e "Les images existantes doivent être stockées sur le partage \033[31m "
 echo ""
 echo "Les postes doivent avoir le wakeonlan d'activé et un boot par défaut en pxe "
 }
+accueil_pxeperso()
+{
+#On demande à l'utilisateur quelle image restaurer parmi celles qui sont présentes dans le répertoire pxeperso
+# On affiche une liste des commandes personnalises dans le répertoire): on demande laquelle sera à appliquer:
+#il faudra donc creer un fichier commande-pxe pour chaque type de poste (appelé M72-tertaire par ex).
+clear
+echo " Ce script permet d'envoyer une consigne de boot par pxe(par exemple restaurer une image clonezilla existante, faire une sauvegarde locale)  sur un/plusieurs postes"
+echo "Les postes doivent avoir le wakeonlan d'activé, un boot par défaut en pxe "
+echo "recopier parmi la liste suivante la commande pxe à envoyer ( type d'image à restaurer dans le cadre de clonezilla) "
+#la liste des fichiers de commande pxe est placée dans le répertoire pxeperso, son contenu va être lu ici.
+ls  "$PXE_PERSO"
+read choix
 
+#On vérifie que ce qui a été tapé correspond bien à une image existante
+VERIF=$(ls "$PXE_PERSO" |grep "$choix")
+#si ce qui a été  tapé ne correspond à aucune ligne de la liste, alors le script s'arrête.
+if [ "$VERIF" = ""  ]; then  echo "pas d'image choisie ou image inexistante, le script est arrêté"
+exit
+else
+echo "les commandes pxe personnalisées contenues dans  $choix seront envoyées sur les postes"
+fi
+}
 creation_partage()
 {
 echo -e " Voulez vous installer un partage samba situé dans /var/se3/partimag ? répondre  \033[1moui pour valider ou n'importe quoi d'autre pour sauter cette étape "
@@ -609,6 +632,37 @@ NOM_CLIENT=$(sed -n "1p" "$TEMP"/postes)
 done
 }
 
+boucle_pxeperso()
+{
+#on  créer notre boucle ici: On va supprimer la première ligne de la liste des adresses mac. Dès que le fichier contenant les adresses mac est vide, il y a arret de la boucle
+until [ "$mac" = "" ]
+do
+
+#le fichier de commande pxe choisi pour les xp est copié dans le répertoire pxelinux.cfg. Il faut ajouter '01'-devant l'adresse mac
+cp "$PXE_PERSO"/"$choix" /tftpboot/pxelinux.cfg/01-"$mac"
+chmod 644  /tftpboot/pxelinux.cfg/01-*
+cp "$PXE_PERSO"/"$choix" "$LOG"/01-"$mac"-"$NOM_CLIENT"
+
+
+#Il faut ensuite allumer le poste qui va donc détecter les instructions pxe.
+/usr/share/se3/scripts/start_poste.sh "$NOM_CLIENT" reboot
+/usr/share/se3/scripts/start_poste.sh "$NOM_CLIENT" wol
+#la première ligne du fichier listeok est à supprimer pour que l'opération continue avec les adresses mac suivantes. Idem avec les autres fichiers
+sed -i '1d' "$TEMP"/listeok
+sed -i '1d' "$TEMP"/liste1
+sed -i '1d' "$TEMP"/postes
+
+#On actualise la variable en mettant des majuscules dans les adresses mac au lieu des minuscules!
+mac=$(sed -n "1p" "$TEMP"/listeok | sed 's/.*/\L&/')
+
+#On actualise la variable.
+mac2=$(sed -n "1p" "$TEMP"/liste1)
+#On actualise la variable.
+NOM_CLIENT=$(sed -n "1p" "$TEMP"/postes)
+
+done
+}
+
 fin_script_samba()
 {
 
@@ -676,8 +730,12 @@ fin_script_samba
 
 elif [  "$choixlanceur" = "4"  ]
 then
-#bash  "$CHEMIN"/scripts/lance-pxe
-echo "bonjour choix n°4"
+accueil_pxeperso
+maj_machines
+choix_machines
+generation_variables
+boucle_pxeperso
+fin_script_samba
 else exit
 fi
 
