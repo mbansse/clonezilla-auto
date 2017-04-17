@@ -41,7 +41,79 @@ DATE=`date +%Y-%m-%d-%H-%M`
 PXE_PERSO="/tftpboot/pxelinux.cfg/clonezilla-auto/pxeperso"
 
 
-# A mettre dans une fonction creation_log
+
+#options du script
+
+#while :; do
+#	case $1 in
+#		-h|-\?|--help)
+#		echo "test de l'option 1"
+#		exit
+#		;;
+#	esac
+#done
+
+
+
+################fonctions du script################## (à mettre dans un odre plus cohérent...plus tard!##################
+recuperer_options()
+{
+suite_options="help"
+suite_options="$suite_options,choix-lanceur::,cl::"
+suite_options="$suite_options,rappel-parc::,rp::"
+suite_options="$suite_options,debut-ip::,di::"
+
+LISTE_OPTIONS=$(getopt --options h --longoptions "$suite_options"   -- "$@")
+
+
+    
+    unset -v suite_options
+    
+    # Évaluation de la chaîne $LISTE_OPTIONS afin de positionner 
+    # $1, $2 comme étant la succession des mots de $LISTE_OPTIONS.
+    eval set -- "$LISTE_OPTIONS"
+    
+    # On peut détruire la variable LISTE_OPTIONS.
+    unset -v LISTE_OPTIONS 
+    
+    # On définit des variables indiquant si les options ont été
+    # appelées. Par défaut, elles ont la valeur "false", c'est-à-dire
+    # qu'il n'y a pas eu appel des options.
+    OPTION_CHOIX_LANCEUR="false"
+    OPTION_RAPPEL_PARC="false"
+    OPTION_DEBUT_IP="false"
+while true
+    do
+        case "$1" in
+        
+            -h|--help)
+              echo " Aide : voir la documentation (https://github.com/SambaEdu/se3-docs/blob/master/se3-clients-linux/options_scripts.md) associée." 
+                exit 0
+            ;;
+            
+            --choix-lanceur|--cl)
+                OPTION_CHOIX_LANCEUR="true"
+                choixlanceur="$2"
+                
+                shift 2
+
+	            ;;
+	    --debut-ip|--di)
+                OPTION_DEBUT_IP="true"
+                debutip="$3"
+                echo "critere de recherche : $debutip" 
+                shift 2
+            ;;
+            	
+
+esac
+done
+}
+
+
+
+
+
 creation_log()
 {
 touch /var/log/clonezilla-auto/$DATE
@@ -723,23 +795,22 @@ echo " Opération terminée. Vous pouvez consulter le compte-rendu dans le fichi
 
 
 
-###début du programme###
+###############################################################début du programme###########################################################################################
 #logo est commun à tous les sous-scripts
-logo
+#recuperer_options  
 
 
-if [ "$choixlanceur" = "1" ]
-then
-echo "Vous avez choisi de mettre en place un partage samba." >> "$LOG"
+script1()
+{
 accueil_mise_en_place
 creation_partage
 modif_clonezilla
 ajout_dans_menu_pxe
-exit
+}
 
-elif [ "$choixlanceur" = "2" ]
-then
-echo "Vous avez choisi de restaurer une image présente sur le se3 sur des postes." >> "$LOG"
+
+script2()
+{
 accueil_se3
 prealable_se3
 choix_clonezilla
@@ -750,9 +821,10 @@ choix_machines
 generation_variables
 boucle
 fin_script_samba
-elif [ "$choixlanceur" = "3" ]
-then
-echo "Vous avez choisi de restaurer une image présente sur un partage samba sur des postes." >> "$LOG"
+}
+
+script3()
+{
 accueil_samba
 prealable_samba
 choix_clonezilla
@@ -765,16 +837,38 @@ choix_machines
 generation_variables
 boucle
 fin_script_samba
+}
 
-elif [  "$choixlanceur" = "4"  ]
-then
-echo "Vous avez choisi de lancer des commandes PXE personnalisées  sur des postes." >> "$LOG"
+script4()
+{
 accueil_pxeperso
 maj_machines
 choix_machines
 generation_variables
 boucle_pxeperso
 fin_script_samba
+}
+
+#logo
+#recuperer_options "$@"
+logo
+if [ "$choixlanceur" = "1" ]
+then
+echo "Vous avez choisi de mettre en place un partage samba." >> "$LOG"
+script1
+exit
+elif [ "$choixlanceur" = "2" ]
+then
+echo "Vous avez choisi de restaurer une image présente sur le se3 sur des postes." >> "$LOG"
+script2
+elif [ "$choixlanceur" = "3" ]
+then
+echo "Vous avez choisi de restaurer une image présente sur un partage samba sur des postes." >> "$LOG"
+script3
+elif [  "$choixlanceur" = "4"  ]
+then
+echo "Vous avez choisi de lancer des commandes PXE personnalisées  sur des postes." >> "$LOG"
+script4
 else exit
 fi
 
