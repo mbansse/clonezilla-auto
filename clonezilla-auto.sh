@@ -39,6 +39,9 @@ TEMP=$(mktemp -d --suffix=-clonezilla-auto)
 . /etc/se3/config_l.cache.sh
 
 DATE=`date +%Y-%m-%d-%H-%M`
+
+#création du répertoire /var/log/clonezilla-auto (utile seulement la première fois).
+mkdir -p /var/log/clonezilla-auto
 #variable  à changer et à décommenter
 PXE_PERSO="/tftpboot/pxelinux.cfg/clonezilla-auto/pxeperso"
 
